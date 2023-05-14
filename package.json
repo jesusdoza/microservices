@@ -1,0 +1,19 @@
+{
+  "name": "microservices",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently 'npm:commentService' 'npm:postService' 'npm:eventBus' 'npm:clientdev' ",
+    "commentService": "cd commentService && npm run start",
+    "postService": "cd postService && npm run start",
+    "eventBus": "cd eventBus && npm run start",
+    "clientdev": "cd client && npm run dev"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^8.0.1"
+  }
+}
