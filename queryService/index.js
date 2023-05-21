@@ -1,42 +1,33 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const { randomBytes } = require("crypto");
 const cors = require("cors");
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-let posts = {}; //local memory
+const eventBusIp = "http://localhost:4005/events";
 
-const PORT = 4002;
-const SERVICE = "Query";
+const posts = {};
 
-app.get("/posts", (req, res) => {
-    res.send(posts);
-});
-
-app.post("/events", (req, res) => {
-    console.log(`recieved event at ${SERVICE} service`, req.body);
-    const { type, data } = req.body;
+const handleEvent = (type, data) => {
     if (type === "PostCreated") {
         const { id, title } = data;
 
         posts[id] = { id, title, comments: [] };
     }
+
     if (type === "CommentCreated") {
-        //  data: { id: commentId, content, postId: req.params.id },
-        const { id, content, postId } = data;
+        const { id, content, postId, status } = data;
 
         const post = posts[postId];
-
-        post.comments.push({ id, content, postId });
+        post.comments.push({ id, content, status });
     }
+
     if (type === "CommentUpdated") {
         const { id, content, postId, status } = data;
 
         const post = posts[postId];
-
         const comment = post.comments.find((comment) => {
             return comment.id === id;
         });
@@ -44,11 +35,24 @@ app.post("/events", (req, res) => {
         comment.status = status;
         comment.content = content;
     }
+};
 
-    // console.log("posts", posts);
+app.get("/posts", (req, res) => {
+    res.send(posts);
+});
+
+app.post("/events", (req, res) => {
+    const { type, data } = req.body;
+    handleEvent(type, data);
     res.send({});
 });
 
-app.listen(PORT, () => {
-    console.log(`${SERVICE} service Listening on ${PORT}`);
+app.listen(4002, async () => {
+    console.log("Query service Listening on 4002");
+    const res = await axios.get(eventBusIp);
+
+    for (let event of res.data) {
+        console.log("procssing event: ", event.type);
+        handleEvent(event.type, event.data);
+    }
 });
