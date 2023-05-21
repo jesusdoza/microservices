@@ -10,6 +10,8 @@ app.use(cors());
 
 const commentsByPostId = {};
 
+const eventBusIP = "http://localhost:4005/events";
+
 app.get("/posts/:id/comments", (req, res) => {
     res.send(commentsByPostId[req.params.id] || []);
 });
@@ -35,8 +37,32 @@ app.post("/posts/:id/comments", async (req, res) => {
     res.status(201).send(comments);
 });
 
-app.post("/events", (req, res) => {
+app.post("/events", async (req, res) => {
     console.log("recieved event", req.body);
+
+    const { type, data } = req.body;
+    if (type === "CommentModerated") {
+        const { postId, id, status, content } = data;
+
+        //get all comments with this post ID
+        const comments = commentsByPostId[postId];
+
+        // fint the comment with the matching ID inside the array
+        const comment = comments.find((comment) => {
+            return comment.id === id;
+        });
+        comment.status = status;
+
+        await axios.post(eventBusIP, {
+            type: "CommentUpdated",
+            data: {
+                id,
+                status,
+                postId,
+                content,
+            },
+        });
+    }
     res.send({});
 });
 
