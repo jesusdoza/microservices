@@ -24,7 +24,6 @@ metadata:
 spec:
   selector:
     app: posts
-  type: ClusterIP
   ports:
     - name: posts
       protocol: TCP
