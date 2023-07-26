@@ -7,7 +7,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const eventBusIp = "http://localhost:4005/events";
+const EVENTS_BUS_IP = "http://event-bus-srv:4005";
 
 const posts = {};
 
@@ -51,7 +51,7 @@ app.post("/events", (req, res) => {
 app.listen(4002, async () => {
     console.log("Query service Listening on 4002");
     try {
-        const res = await axios.get(eventBusIp);
+        const res = await axios.get(`${EVENTS_BUS_IP}/events`);
 
         for (let event of res.data) {
             console.log("procssing event: ", event.type);
