@@ -4,6 +4,7 @@ const { randomBytes } = require("crypto");
 const cors = require("cors");
 const axios = require("axios");
 
+const EVENTS_BUS_IP = "http://event-bus-srv:4005";
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
@@ -24,7 +25,7 @@ app.post("/posts/:id/comments", async (req, res) => {
 
     commentsByPostId[req.params.id] = comments;
 
-    await axios.post("http://localhost:4005/events", {
+    await axios.post(`${EVENTS_BUS_IP}/events`, {
         type: "CommentCreated",
         data: {
             id: commentId,
@@ -51,7 +52,7 @@ app.post("/events", async (req, res) => {
         });
         comment.status = status;
 
-        await axios.post("http://localhost:4005/events", {
+        await axios.post(`${EVENTS_BUS_IP}/events`, {
             type: "CommentUpdated",
             data: {
                 id,

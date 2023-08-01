@@ -1,27 +1,40 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const axios = require("axios");
+const cors = require("cors");
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
-const events = [];
+///ALL services IP addresses
+const POST_SRV_IP = "http://posts-clusterip-srv:4000";
+const COMMENTS_SRV_IP = "http://comments-srv:4001";
+const QUERY_SRV_IP = "http://query-srv:4002";
+const MODERATION_SRV_IP = "http://moderation-srv:4003";
+const events = []; // EVENTS DATABASE
 
 app.post("/events", (req, res) => {
+    console.log("event bus recieved event");
+    // console.log("req", req);
     const event = req.body;
 
     events.push(event);
 
-    axios.post("http://localhost:4000/events", event).catch((err) => {
+    //event bus sends event to all microservices
+    ///Posts microservice
+    axios.post(`${POST_SRV_IP}/events`, event).catch((err) => {
+        console.log("event bus error sending event to post service");
         console.log(err.message);
     });
-    axios.post("http://localhost:4001/events", event).catch((err) => {
+
+    axios.post(`${COMMENTS_SRV_IP}/events`, event).catch((err) => {
         console.log(err.message);
     });
-    axios.post("http://localhost:4002/events", event).catch((err) => {
+    axios.post(`${QUERY_SRV_IP}/events`, event).catch((err) => {
         console.log(err.message);
     });
-    axios.post("http://localhost:4003/events", event).catch((err) => {
+    axios.post(`${MODERATION_SRV_IP}/events`, event).catch((err) => {
         console.log(err.message);
     });
     res.send({ status: "OK" });
